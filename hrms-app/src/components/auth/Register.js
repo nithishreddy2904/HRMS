@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { registerUser, clearError } from '../../redux/authSlice';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -11,81 +12,43 @@ import {
   Alert,
   CircularProgress,
   InputAdornment,
-  IconButton,
-  Divider,
-  Card,
-  CardContent,
 } from '@mui/material';
-import {
-  Visibility,
-  VisibilityOff,
-  Person,
-  Lock,
-  BusinessCenter,
-  Login as LoginIcon,
-} from '@mui/icons-material';
-import { loginUser, clearError } from '../../redux/authSlice';
+import { Person, Lock, BusinessCenter } from '@mui/icons-material';
 
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+const Register = () => {
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    return () => {
-      dispatch(clearError());
-    };
-  }, [dispatch]);
+  const { isLoading, error } = useSelector((state) => state.auth);
 
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!email.trim()) {
+    if (!form.name.trim()) newErrors.name = 'Name is required';
+    if (!form.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-    
-    if (!password) {
+    if (!form.password) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 3) {
+    } else if (form.password.length < 3) {
       newErrors.password = 'Password must be at least 3 characters';
     }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    // Now accepts any credentials - no specific validation
-    dispatch(loginUser({ email, password }));
-  };
-
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const handleQuickLogin = () => {
-    setEmail('user@example.com');
-    setPassword('123456');
-    setErrors({});
+    if (!validateForm()) return;
+    dispatch(registerUser(form)).then((res) => {
+      if (!res.error) navigate('/login');
+    });
   };
 
   return (
@@ -134,10 +97,10 @@ const Login = () => {
             >
               <BusinessCenter sx={{ fontSize: 40, color: 'white' }} />
             </Box>
-            <Typography 
-              variant="h3" 
-              component="h1" 
-              gutterBottom 
+            <Typography
+              variant="h3"
+              component="h1"
+              gutterBottom
               sx={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 WebkitBackgroundClip: 'text',
@@ -160,18 +123,16 @@ const Login = () => {
             </Alert>
           )}
 
-          
-
-          {/* Login Form */}
+          {/* Sign Up Form */}
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
-              type="email"
-              label="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              error={!!errors.email}
-              helperText={errors.email || 'Enter any valid email format'}
+              label="Name"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              error={!!errors.name}
+              helperText={errors.name || 'Enter your full name'}
               margin="normal"
               InputProps={{
                 startAdornment: (
@@ -181,16 +142,37 @@ const Login = () => {
                 ),
               }}
               sx={{ mb: 2 }}
+              required
             />
-
             <TextField
               fullWidth
-              type={showPassword ? 'text' : 'password'}
+              label="Email Address"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              error={!!errors.email}
+              helperText={errors.email || 'Enter a valid email address'}
+              margin="normal"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Person color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
+              required
+            />
+            <TextField
+              fullWidth
               label="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
               error={!!errors.password}
-              helperText={errors.password || 'Enter any password (minimum 3 characters)'}
+              helperText={errors.password || 'Enter a password (minimum 3 characters)'}
               margin="normal"
               InputProps={{
                 startAdornment: (
@@ -198,28 +180,18 @@ const Login = () => {
                     <Lock color="action" />
                   </InputAdornment>
                 ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={handleClickShowPassword}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
               }}
               sx={{ mb: 3 }}
+              required
             />
-
             <Button
               type="submit"
               fullWidth
               variant="contained"
               size="large"
-              sx={{ 
-                mt: 2, 
-                mb: 3, 
+              sx={{
+                mt: 2,
+                mb: 3,
                 py: 1.5,
                 fontSize: '1.1rem',
                 fontWeight: 600,
@@ -231,17 +203,11 @@ const Login = () => {
                 },
               }}
               disabled={isLoading}
-              startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <LoginIcon />}
+              startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
             >
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isLoading ? 'Signing Up...' : 'Sign Up'}
             </Button>
           </form>
-
-          <Divider sx={{ my: 3 }}>
-            <Typography variant="body2" color="textSecondary">
-              {/* Quick Access */}
-            </Typography>
-          </Divider>
 
           {/* Footer */}
           <Box sx={{ mt: 4, textAlign: 'center' }}>
@@ -251,9 +217,9 @@ const Login = () => {
             <Button
               variant="text"
               sx={{ mt: 2 }}
-              onClick={() => navigate('/register')}
+              onClick={() => navigate('/login')}
             >
-              Don't have an account? Sign Up
+              Already have an account? Login
             </Button>
           </Box>
         </Paper>
@@ -262,4 +228,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

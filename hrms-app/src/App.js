@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme/theme';
 import Login from './components/auth/Login';
+import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Attendance from './components/modules/attendance/Attendance';
@@ -14,17 +15,18 @@ import './App.css';
 
 function App() {
   const location = useLocation();
-  const isLoginPage = location.pathname === '/login';
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <div className="App" style={{ display: 'flex' }}>
-        {!isLoginPage && <SharedSidebar />}
+        {!isAuthPage && <SharedSidebar />}
         <div style={{ flexGrow: 1 }}>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route
               path="/dashboard"
               element={
