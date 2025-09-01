@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -11,196 +11,149 @@ import {
   Alert,
   CircularProgress,
   InputAdornment,
-  IconButton,
-  Divider,
-  Card,
-  CardContent,
+  IconButton
 } from '@mui/material';
 import {
   Visibility,
   VisibilityOff,
   Person,
-  Lock,
-  BusinessCenter,
-  Login as LoginIcon,
+  Lock
 } from '@mui/icons-material';
 import { loginUser, clearError } from '../../redux/authSlice';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({});
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
+    // Clear any previous errors when component mounts
+    dispatch(clearError());
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Redirect to dashboard if already authenticated
     if (isAuthenticated) {
+      console.log('✅ User is authenticated, redirecting to dashboard');
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
 
-  useEffect(() => {
-    return () => {
-      dispatch(clearError());
-    };
-  }, [dispatch]);
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-    
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 3) {
-      newErrors.password = 'Password must be at least 3 characters';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    // Now accepts any credentials - no specific validation
-    dispatch(loginUser({ email, password }));
+    console.log('🔐 Login form submitted for:', formData.email);
+    dispatch(loginUser(formData));
   };
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleQuickLogin = () => {
-    setEmail('user@example.com');
-    setPassword('123456');
-    setErrors({});
-  };
-
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 2,
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper
-          elevation={24}
-          sx={{
-            padding: 4,
-            borderRadius: 4,
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-          }}
-        >
+    <Container component="main" maxWidth="sm">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          minHeight: '100vh',
+          paddingTop: 4
+        }}
+      >
+        <Paper elevation={3} sx={{ padding: 4, width: '100%', maxWidth: 400 }}>
           {/* Header */}
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              mb: 4,
-            }}
-          >
+          <Box textAlign="center" mb={3}>
             <Box
+              component="div"
               sx={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 80,
-                height: 80,
+                width: 60,
+                height: 60,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                mb: 2,
-                boxShadow: '0 4px 20px rgba(102, 126, 234, 0.4)',
+                backgroundColor: 'primary.main',
+                color: 'white',
+                mb: 2
               }}
             >
-              <BusinessCenter sx={{ fontSize: 40, color: 'white' }} />
+              <Person fontSize="large" />
             </Box>
-            <Typography 
-              variant="h3" 
-              component="h1" 
-              gutterBottom 
-              sx={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontWeight: 700,
-                textAlign: 'center',
-              }}
-            >
+            
+            <Typography component="h1" variant="h4" gutterBottom>
               HRMS
             </Typography>
-            <Typography variant="h5" color="textSecondary" textAlign="center">
+            <Typography variant="body2" color="textSecondary">
               Human Resource Management System
             </Typography>
           </Box>
 
           {/* Error Alert */}
-          {(error || errors.general) && (
-            <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-              {error || errors.general}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
             </Alert>
           )}
 
-          
-
-          {/* Login Form */}
-          <form onSubmit={handleSubmit}>
+          <Box component="form" onSubmit={handleSubmit}>
             <TextField
-              fullWidth
-              type="email"
-              label="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              error={!!errors.email}
-              helperText={errors.email || 'Enter any valid email format'}
               margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={formData.email}
+              onChange={handleChange}
+              disabled={isLoading}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Person color="action" />
+                    <Person />
                   </InputAdornment>
                 ),
               }}
               sx={{ mb: 2 }}
             />
-
+            
             <TextField
-              fullWidth
-              type={showPassword ? 'text' : 'password'}
-              label="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={!!errors.password}
-              helperText={errors.password || 'Enter any password (minimum 3 characters)'}
               margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              autoComplete="current-password"
+              value={formData.password}
+              onChange={handleChange}
+              disabled={isLoading}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Lock color="action" />
+                    <Lock />
                   </InputAdornment>
                 ),
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
+                      aria-label="toggle password visibility"
                       onClick={handleClickShowPassword}
                       edge="end"
                     >
@@ -211,54 +164,36 @@ const Login = () => {
               }}
               sx={{ mb: 3 }}
             />
-
+            
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              size="large"
-              sx={{ 
-                mt: 2, 
-                mb: 3, 
-                py: 1.5,
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                boxShadow: '0 4px 20px rgba(102, 126, 234, 0.4)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)',
-                  boxShadow: '0 6px 25px rgba(102, 126, 234, 0.6)',
-                },
-              }}
+              sx={{ mt: 2, mb: 2, py: 1.5 }}
               disabled={isLoading}
-              startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <LoginIcon />}
+              startIcon={isLoading ? <CircularProgress size={20} /> : null}
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
-          </form>
-
-          <Divider sx={{ my: 3 }}>
-            <Typography variant="body2" color="textSecondary">
-              {/* Quick Access */}
-            </Typography>
-          </Divider>
-
-          {/* Footer */}
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Typography variant="caption" color="textSecondary">
-              © 2024 HRMS. Demo Mode - Any credentials work!
-            </Typography>
-            <Button
-              variant="text"
-              sx={{ mt: 2 }}
-              onClick={() => navigate('/register')}
-            >
-              Don't have an account? Sign Up
-            </Button>
+            
+            <Box textAlign="center">
+              <Link to="/register" style={{ textDecoration: 'none' }}>
+                <Typography variant="body2" color="primary">
+                  Don't have an account? Sign Up
+                </Typography>
+              </Link>
+            </Box>
           </Box>
         </Paper>
-      </Container>
-    </Box>
+        
+        {/* Footer */}
+        <Box mt={4} textAlign="center">
+          <Typography variant="body2" color="textSecondary">
+            © 2025 HRMS. Secure Authentication System
+          </Typography>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 

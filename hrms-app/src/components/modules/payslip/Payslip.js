@@ -209,7 +209,7 @@ const Payslip = () => {
       >
         <Container maxWidth="xl">
           {/* Page Header */}
-          <Box sx={{ mb: 4, mt: 4 }}>
+          <Box sx={{ mb: 4, mt: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
             <Typography variant="h4" gutterBottom fontWeight={600}>
               View, download, and manage employee payslips
             </Typography>

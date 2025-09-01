@@ -52,11 +52,11 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { 
-  fetchAttendanceRecords, 
-  markAttendance, 
+import {
+  fetchAttendanceRecords,
+  markAttendance,
   fetchAttendanceStats,
-  setSelectedDate
+  setSelectedDate,
 } from '../../../redux/attendanceSlice';
 
 const drawerWidth = 240;
@@ -218,7 +218,7 @@ const Attendance = () => {
         >
           <Container maxWidth="xl">
             {/* Page Header */}
-            <Box sx={{ mb: 4,mt: 4 }}>
+            <Box sx={{ mb: 4,mt: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
               <Typography variant="h4" gutterBottom fontWeight={600}>
                 Track and manage employee attendance records
               </Typography>

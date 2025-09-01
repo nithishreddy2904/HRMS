@@ -307,11 +307,11 @@ const Dashboard = () => {
         }}
       >
         {/* Welcome Section */}
-        <Box sx={{ mb: 4,mt: 4 }}>
-          <Typography variant="h4" gutterBottom fontWeight={600}>
+        <Box sx={{ mb: 4, mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+          <Typography variant="h4" gutterBottom fontWeight={600} align="center">
             Welcome back, {user?.name || 'User'}!
           </Typography>
-          <Typography variant="body1" color="textSecondary">
+          <Typography variant="body1" color="textSecondary" align="center">
             Here's what's happening with your HR management today.
           </Typography>
         </Box>
