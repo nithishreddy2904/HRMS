@@ -125,6 +125,31 @@ app.use((err, req, res, next) => {
 
 // Database connection and server startup
 const PORT = process.env.PORT || 5000;
+const testDatabaseConnection = async () => {
+  try {
+    console.log('🔄 Testing database connection...');
+    const db = require('./src/config/database');
+    
+    const [rows] = await db.execute('SELECT 1 as test, NOW() as current_time');
+    console.log('✅ Database connection successful:', rows[0]);
+    
+    const [tables] = await db.execute('SHOW TABLES');
+    console.log(`✅ Found ${tables.length} tables in database`);
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    
+    if (error.code === 'ER_ACCESS_DENIED_FOR_USER') {
+      console.error('💡 Fix: Check MySQL password in .env file');
+    } else if (error.code === 'ECONNREFUSED') {
+      console.error('💡 Fix: Start MySQL service');
+    }
+    
+    throw error;
+  }
+};
+
 
 const startServer = async () => {
   try {

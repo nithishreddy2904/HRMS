@@ -9,7 +9,7 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Add request interceptor to add auth token
 axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('authToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -22,7 +22,7 @@ axios.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
-      localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
       delete axios.defaults.headers.common['Authorization'];
       // Redirect to login would happen here in a real app
     }
@@ -47,7 +47,7 @@ export const loginUser = createAsyncThunk(
       const { accessToken, user } = response.data.data;
       
       // Store token in localStorage
-      localStorage.setItem('token', accessToken);
+      localStorage.setItem('authToken', accessToken);
       axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       
       console.log('✅ Login successful for user:', user.name);
@@ -77,7 +77,7 @@ export const registerUser = createAsyncThunk(
       const { accessToken, user } = response.data.data;
       
       // Store token in localStorage
-      localStorage.setItem('token', accessToken);
+      localStorage.setItem('authToken', accessToken);
       axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       
       console.log('✅ Registration successful for user:', user.name);
@@ -106,7 +106,7 @@ export const logoutUser = createAsyncThunk('auth/logout', async () => {
     }
     
     // Remove token from storage and axios headers
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     delete axios.defaults.headers.common['Authorization'];
     
     console.log('✅ Logout completed successfully');
@@ -122,7 +122,7 @@ export const logoutUser = createAsyncThunk('auth/logout', async () => {
 export const checkAuthState = createAsyncThunk(
   'auth/checkAuth', 
   async (_, { rejectWithValue }) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     
     if (!token) {
       console.log('ℹ️ No token found in localStorage');
@@ -146,7 +146,7 @@ export const checkAuthState = createAsyncThunk(
       console.error('❌ Token verification failed:', error.response?.data);
       
       // Remove invalid token
-      localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
       delete axios.defaults.headers.common['Authorization'];
       
       return rejectWithValue('Token validation failed');

@@ -69,6 +69,8 @@ const Attendance = () => {
   const [status, setStatus] = useState('present');
   const [checkInTime, setCheckInTime] = useState('');
   const [checkOutTime, setCheckOutTime] = useState('');
+  const [breakStart, setBreakStart] = useState('');
+  const [breakEnd, setBreakEnd] = useState('');
   const [notes, setNotes] = useState('');
 
   const dispatch = useDispatch();
@@ -95,25 +97,39 @@ const Attendance = () => {
   };
 
   const handleMarkAttendance = () => {
-    const attendanceData = {
-      employeeId,
-      date: selectedDate.format('YYYY-MM-DD'),
-      status,
-      checkInTime,
-      checkOutTime,
-      notes,
-    };
-
-    dispatch(markAttendance(attendanceData));
-    setOpenDialog(false);
-    resetForm();
+    if (!selectedDate) {
+    alert('Please select a date');
+    return;
+  }
+  
+  if (!status) {
+    alert('Please select a status');
+    return;
+  }
+  const attendanceData = {
+    employeeId,
+    date: selectedDate.format('YYYY-MM-DD'),
+    status,
+    checkInTime: checkInTime ,
+    checkOutTime: checkOutTime || null,
+    breakStart: breakStart || null,    
+    breakEnd: breakEnd || null,        
+    notes: notes || null,
   };
+
+  dispatch(markAttendance(attendanceData));
+  setOpenDialog(false);
+  resetForm();
+};
+
 
   const resetForm = () => {
     setEmployeeId('');
     setStatus('present');
     setCheckInTime('');
     setCheckOutTime('');
+    setBreakStart('');
+    setBreakEnd('');
     setNotes('');
   };
 
@@ -399,6 +415,25 @@ const Attendance = () => {
                     onChange={(e) => setCheckOutTime(e.target.value)}
                     InputLabelProps={{ shrink: true }}
                   />
+                  <TextField
+  fullWidth
+  type="time"
+  label="Break Start Time"
+  value={breakStart}
+  onChange={(e) => setBreakStart(e.target.value)}
+  InputLabelProps={{ shrink: true }}
+  sx={{ mt: 2 }}
+/>
+
+<TextField
+  fullWidth
+  type="time"
+  label="Break End Time"
+  value={breakEnd}
+  onChange={(e) => setBreakEnd(e.target.value)}
+  InputLabelProps={{ shrink: true }}
+  sx={{ mt: 2 }}
+/>
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
