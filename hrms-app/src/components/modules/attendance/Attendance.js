@@ -110,7 +110,7 @@ const Attendance = () => {
     employeeId,
     date: selectedDate.format('YYYY-MM-DD'),
     status,
-    checkInTime: checkInTime ,
+    checkInTime: checkInTime || null,
     checkOutTime: checkOutTime || null,
     breakStart: breakStart || null,    
     breakEnd: breakEnd || null,        

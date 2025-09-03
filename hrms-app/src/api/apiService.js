@@ -57,15 +57,16 @@ apiClient.interceptors.response.use(
       message: error.response?.data?.message || error.message
     });
 
-    // Handle common error cases WITHOUT forced redirects
+    // Handle common error cases
     if (error.response?.status === 401) {
-      // Token expired or invalid - just clear tokens
+      // Token expired or invalid
       localStorage.removeItem('authToken');
       sessionStorage.removeItem('authToken');
-      console.warn('🔒 Authentication failed - tokens cleared. Let ProtectedRoute handle redirect.');
 
-      // Don't force redirect - let React Router handle it naturally
-      // The ProtectedRoute component will detect the missing auth and redirect properly
+      // Redirect to login (you might want to use React Router here)
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
 
     return Promise.reject(error);
@@ -81,9 +82,6 @@ const apiService = {
   patch: (url, data = {}, config = {}) => apiClient.patch(url, data, config),
   delete: (url, config = {}) => apiClient.delete(url, config),
 
-  // Health check method
-  healthCheck: () => apiClient.get('/health'),
-
   // Authentication methods
   auth: {
     login: (credentials) => apiClient.post('/auth/login', credentials),
@@ -95,9 +93,6 @@ const apiService = {
 
   // Attendance methods
   attendance: {
-    // Health check for attendance service
-    healthCheck: () => apiClient.get('/attendance/health'),
-
     // Get attendance records with optional filters
     getRecords: (params = {}) => {
       const searchParams = new URLSearchParams();

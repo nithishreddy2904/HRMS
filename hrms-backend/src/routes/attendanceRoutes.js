@@ -5,7 +5,9 @@ const router = express.Router();
 const {
   getAttendanceRecords,
   getAttendanceStats,
-  markAttendance
+  markAttendance,
+  updateAttendance,
+  deleteAttendance
 } = require('../controllers/attendanceController');
 
 // Import middleware
@@ -36,6 +38,21 @@ router.get('/stats', authenticateToken, getAttendanceStats);
  * @body    { employeeId?, date, status, checkInTime?, checkOutTime?, notes? }
  */
 router.post('/', authenticateToken, markAttendance);
+
+/**
+ * @route PUT /api/attendance/:id
+ * @desc Update attendance record
+ * @access Private
+ */
+router.put('/:id', authenticateToken, updateAttendance);
+
+/**
+ * @route DELETE /api/attendance/:id
+ * @desc Delete attendance record
+ * @access Private
+ */
+router.delete('/:id', authenticateToken, deleteAttendance);
+
 
 /**
  * @route   GET /api/attendance/health
