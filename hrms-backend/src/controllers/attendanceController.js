@@ -1,4 +1,3 @@
-
 const db = require('../config/database');
 const Employee = require('../models/Employee'); // Import the Employee model
 
@@ -223,7 +222,7 @@ const getAttendanceStats = async (req, res) => {
   }
 };
 
-// Mark attendance
+// Mark attendance - FIXED VERSION
 const markAttendance = async (req, res) => {
   try {
     const { employeeId, date, status, checkInTime, checkOutTime, breakStart, breakEnd, notes } = req.body;
@@ -258,6 +257,21 @@ const markAttendance = async (req, res) => {
         error: `Status must be one of: ${validStatuses.join(', ')}`
       });
     }
+
+    // 🔥 CRITICAL FIX: Convert undefined values to null for SQL compatibility
+    const sqlSafeCheckInTime = checkInTime || null;
+    const sqlSafeCheckOutTime = checkOutTime || null;
+    const sqlSafeBreakStart = breakStart || null;
+    const sqlSafeBreakEnd = breakEnd || null;
+    const sqlSafeNotes = notes || null;
+
+    console.log('🔧 SQL-safe parameters:', {
+      sqlSafeCheckInTime,
+      sqlSafeCheckOutTime,
+      sqlSafeBreakStart,
+      sqlSafeBreakEnd,
+      sqlSafeNotes
+    });
 
     // Determine which employee we're marking attendance for
     let targetEmployee;
@@ -310,17 +324,17 @@ const markAttendance = async (req, res) => {
     let totalHours = null;
     let overtimeHours = 0;
 
-    if (checkInTime && checkOutTime) {
-      const checkIn = new Date(`${date} ${checkInTime}`);
-      const checkOut = new Date(`${date} ${checkOutTime}`);
+    if (sqlSafeCheckInTime && sqlSafeCheckOutTime) {
+      const checkIn = new Date(`${date} ${sqlSafeCheckInTime}`);
+      const checkOut = new Date(`${date} ${sqlSafeCheckOutTime}`);
 
       if (checkOut > checkIn) {
         let workingMinutes = (checkOut - checkIn) / (1000 * 60); // Convert to minutes
 
         // Subtract break time if provided
-        if (breakStart && breakEnd) {
-          const breakStartTime = new Date(`${date} ${breakStart}`);
-          const breakEndTime = new Date(`${date} ${breakEnd}`);
+        if (sqlSafeBreakStart && sqlSafeBreakEnd) {
+          const breakStartTime = new Date(`${date} ${sqlSafeBreakStart}`);
+          const breakEndTime = new Date(`${date} ${sqlSafeBreakEnd}`);
           if (breakEndTime > breakStartTime) {
             const breakMinutes = (breakEndTime - breakStartTime) / (1000 * 60);
             workingMinutes -= breakMinutes;
@@ -344,7 +358,7 @@ const markAttendance = async (req, res) => {
     );
 
     if (existingResult.length > 0) {
-      // Update existing record
+      // Update existing record with SQL-safe parameters
       const updateQuery = `
         UPDATE attendance 
         SET clock_in = ?, clock_out = ?, break_start = ?, break_end = ?, 
@@ -354,14 +368,14 @@ const markAttendance = async (req, res) => {
       `;
 
       await db.execute(updateQuery, [
-        checkInTime, checkOutTime, breakStart, breakEnd, 
-        status, notes, totalHours, overtimeHours, 
+        sqlSafeCheckInTime, sqlSafeCheckOutTime, sqlSafeBreakStart, sqlSafeBreakEnd, 
+        status, sqlSafeNotes, totalHours, overtimeHours, 
         targetEmployee.id, date
       ]);
 
       console.log('✅ Updated existing attendance record');
     } else {
-      // Insert new record
+      // Insert new record with SQL-safe parameters
       const insertQuery = `
         INSERT INTO attendance 
         (employee_id, date, clock_in, clock_out, break_start, break_end, 
@@ -370,8 +384,8 @@ const markAttendance = async (req, res) => {
       `;
 
       await db.execute(insertQuery, [
-        targetEmployee.id, date, checkInTime, checkOutTime, breakStart, breakEnd,
-        status, notes, totalHours, overtimeHours
+        targetEmployee.id, date, sqlSafeCheckInTime, sqlSafeCheckOutTime, sqlSafeBreakStart, sqlSafeBreakEnd,
+        status, sqlSafeNotes, totalHours, overtimeHours
       ]);
 
       console.log('✅ Created new attendance record');
@@ -418,7 +432,7 @@ const markAttendance = async (req, res) => {
   }
 };
 
-// Update attendance record
+// Update attendance record - FIXED VERSION
 const updateAttendance = async (req, res) => {
   try {
     const { id } = req.params;
@@ -454,7 +468,7 @@ const updateAttendance = async (req, res) => {
       });
     }
 
-    // Build update query dynamically
+    // Build update query dynamically with SQL-safe parameters
     const allowedUpdates = [
       'date', 'clock_in', 'clock_out', 'break_start', 'break_end',
       'status', 'notes', 'total_hours', 'overtime_hours'
@@ -466,7 +480,9 @@ const updateAttendance = async (req, res) => {
     Object.keys(updateData).forEach(key => {
       if (allowedUpdates.includes(key) && updateData[key] !== undefined) {
         updateFields.push(`${key} = ?`);
-        updateValues.push(updateData[key]);
+        // 🔥 CRITICAL FIX: Convert undefined to null for SQL compatibility
+        const sqlSafeValue = updateData[key] === undefined ? null : updateData[key];
+        updateValues.push(sqlSafeValue);
       }
     });
 

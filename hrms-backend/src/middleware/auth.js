@@ -84,6 +84,43 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
+// Middleware to authorize specific roles
+const authorizeRoles = (...allowedRoles) => {
+  return (req, res, next) => {
+    try {
+      // Check if user exists (should be set by authenticateToken middleware)
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+          error: 'User not authenticated. Use authenticateToken middleware first.'
+        });
+      }
+
+      // Check if user role is in allowed roles
+      if (!allowedRoles.includes(req.user.role)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied',
+          error: `Role '${req.user.role}' is not authorized. Required roles: ${allowedRoles.join(', ')}`
+        });
+      }
+
+      console.log(`✅ Role authorization passed: ${req.user.role} for ${req.method} ${req.originalUrl}`);
+      next();
+    } catch (error) {
+      console.error('Authorization middleware error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Authorization error',
+        error: 'Internal server error during authorization'
+      });
+    }
+  };
+};
+
+// Export both middleware functions
 module.exports = {
-  authenticateToken
+  authenticateToken,
+  authorizeRoles    // ← ADD THIS MISSING EXPORT
 };

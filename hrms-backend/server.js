@@ -65,18 +65,30 @@ app.get('/api/test', (req, res) => {
 });
 
 // Import and use routes
-try {
+try { 
   const authRoutes = require('./src/routes/authRoutes');
   const attendanceRoutes = require('./src/routes/attendanceRoutes');
+  const payrollRoutes = require('./src/routes/payrollRoutes');      // ← ADD THIS
+  const userRoutes = require('./src/routes/userRoutes');           // ← ADD THIS
   
   // Mount routes
   app.use('/api/auth', authRoutes);
   app.use('/api/attendance', attendanceRoutes);
+  app.use('/api/payroll', payrollRoutes);                         // ← ADD THIS
+  app.use('/api/users', userRoutes);                             // ← ADD THIS
   
-  console.log('✅ Routes loaded successfully');
+  console.log('✅ All routes loaded successfully');
+  console.log('📋 Available endpoints:');
+  console.log('   • POST /api/auth/login');
+  console.log('   • GET  /api/attendance/*');
+  console.log('   • GET  /api/payroll/*');                       // ← NOW AVAILABLE
+  console.log('   • POST /api/payroll/generate');               // ← NOW AVAILABLE
+  console.log('   • GET  /api/users/*');                        // ← NOW AVAILABLE
 } catch (error) {
   console.error('❌ Error loading routes:', error.message);
+  console.error('💡 Check if all route files exist in src/routes/');
 }
+
 
 // 404 handler
 app.use('*', (req, res) => {
